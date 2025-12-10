@@ -3,6 +3,12 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
+import {
+  validateAmount,
+  validateBankAccountNumber,
+  validateCardNumber,
+  validateRoutingNumber,
+} from "@/lib/validation/payment";
 
 interface FundingModalProps {
   accountId: number;
@@ -74,14 +80,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
                     value: /^\d+\.?\d{0,2}$/,
                     message: "Invalid amount format",
                   },
-                  min: {
-                    value: 0.0,
-                    message: "Amount must be at least $0.01",
-                  },
-                  max: {
-                    value: 10000,
-                    message: "Amount cannot exceed $10,000",
-                  },
+                  validate: (value) => validateAmount(value, 0.01, 10000),
                 })}
                 type="text"
                 className="pl-7 block w-full rounded-md border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm p-2 border"
@@ -112,16 +111,8 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
             <input
               {...register("accountNumber", {
                 required: `${fundingType === "card" ? "Card" : "Account"} number is required`,
-                pattern: {
-                  value: fundingType === "card" ? /^\d{16}$/ : /^\d+$/,
-                  message: fundingType === "card" ? "Card number must be 16 digits" : "Invalid account number",
-                },
-                validate: {
-                  validCard: (value) => {
-                    if (fundingType !== "card") return true;
-                    return value.startsWith("4") || value.startsWith("5") || "Invalid card number";
-                  },
-                },
+                validate: (value) =>
+                  fundingType === "card" ? validateCardNumber(value) : validateBankAccountNumber(value),
               })}
               type="text"
               className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
@@ -136,10 +127,7 @@ export function FundingModal({ accountId, onClose, onSuccess }: FundingModalProp
               <input
                 {...register("routingNumber", {
                   required: "Routing number is required",
-                  pattern: {
-                    value: /^\d{9}$/,
-                    message: "Routing number must be 9 digits",
-                  },
+                  validate: validateRoutingNumber,
                 })}
                 type="text"
                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"

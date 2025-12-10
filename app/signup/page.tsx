@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { trpc } from "@/lib/trpc/client";
 import Link from "next/link";
 import { validateEmailFormat } from "@/lib/validation/email";
+import { validateDateOfBirth, validatePhoneNumber, validateStateCode } from "@/lib/validation/identity";
+import { validatePassword } from "@/lib/validation/password";
 
 type SignupFormData = {
   email: string;
@@ -98,17 +100,7 @@ export default function SignupPage() {
                 <input
                   {...register("password", {
                     required: "Password is required",
-                    minLength: {
-                      value: 8,
-                      message: "Password must be at least 8 characters",
-                    },
-                    validate: {
-                      notCommon: (value) => {
-                        const commonPasswords = ["password", "12345678", "qwerty"];
-                        return !commonPasswords.includes(value.toLowerCase()) || "Password is too common";
-                      },
-                      hasNumber: (value) => /\d/.test(value) || "Password must contain a number",
-                    },
+                    validate: validatePassword,
                   })}
                   type="password"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
@@ -170,10 +162,7 @@ export default function SignupPage() {
                 <input
                   {...register("phoneNumber", {
                     required: "Phone number is required",
-                    pattern: {
-                      value: /^\d{10}$/,
-                      message: "Phone number must be 10 digits",
-                    },
+                    validate: validatePhoneNumber,
                   })}
                   type="tel"
                   placeholder="1234567890"
@@ -187,7 +176,10 @@ export default function SignupPage() {
                   Date of Birth
                 </label>
                 <input
-                  {...register("dateOfBirth", { required: "Date of birth is required" })}
+                  {...register("dateOfBirth", {
+                    required: "Date of birth is required",
+                    validate: validateDateOfBirth,
+                  })}
                   type="date"
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
                 />
@@ -249,10 +241,7 @@ export default function SignupPage() {
                   <input
                     {...register("state", {
                       required: "State is required",
-                      pattern: {
-                        value: /^[A-Z]{2}$/,
-                        message: "Use 2-letter state code",
-                      },
+                      validate: validateStateCode,
                     })}
                     type="text"
                     placeholder="CA"

@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
 import { eq, sql } from "drizzle-orm";
 import { validateEmailFormat } from "@/lib/validation/email";
+import { validateDateOfBirth, validatePhoneNumber, validateStateCode } from "@/lib/validation/identity";
+import { validatePassword } from "@/lib/validation/password";
 
 const emailSchema = z.string().superRefine((value, ctx) => {
   const result = validateEmailFormat(value);
@@ -18,20 +20,58 @@ const emailSchema = z.string().superRefine((value, ctx) => {
   }
 });
 
+const phoneSchema = z.string().superRefine((value, ctx) => {
+  const result = validatePhoneNumber(value);
+  if (result !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: typeof result === "string" ? result : "Invalid phone number",
+    });
+  }
+});
+
+const dobSchema = z.string().superRefine((value, ctx) => {
+  const result = validateDateOfBirth(value);
+  if (result !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: typeof result === "string" ? result : "Invalid date of birth",
+    });
+  }
+});
+
+const stateSchema = z
+  .string()
+  .transform((val) => val.trim().toUpperCase())
+  .superRefine((value, ctx) => {
+    const result = validateStateCode(value);
+    if (result !== true) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: typeof result === "string" ? result : "Invalid state code",
+      });
+    }
+  });
+
 export const authRouter = router({
   signup: publicProcedure
     .input(
       z.object({
         email: emailSchema,
-        password: z.string().min(8),
+        password: z.string().superRefine((value, ctx) => {
+          const res = validatePassword(value);
+          if (res !== true) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: res as string });
+          }
+        }),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
-        phoneNumber: z.string().regex(/^\+?\d{10,15}$/),
-        dateOfBirth: z.string(),
+        phoneNumber: phoneSchema,
+        dateOfBirth: dobSchema,
         ssn: z.string().regex(/^\d{9}$/),
         address: z.string().min(1),
         city: z.string().min(1),
-        state: z.string().length(2).toUpperCase(),
+        state: stateSchema,
         zipCode: z.string().regex(/^\d{5}$/),
       })
     )

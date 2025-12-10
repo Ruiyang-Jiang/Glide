@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "echo 'Please configure your test runner'",
     "test:email": "tsx tests/emailValidation.test.ts",
+    "test:validators": "tsx tests/emailValidation.test.ts && tsx tests/userValidation.test.ts && tsx tests/paymentValidation.test.ts",
     "db:list-users": "node scripts/db-utils.js list-users",
     "db:list-sessions": "node scripts/db-utils.js list-sessions",
     "db:clear": "node scripts/db-utils.js clear",

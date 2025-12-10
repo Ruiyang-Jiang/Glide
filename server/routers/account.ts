@@ -4,6 +4,12 @@ import { protectedProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { accounts, transactions } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import {
+  validateAmount,
+  validateBankAccountNumber,
+  validateCardNumber,
+  validateRoutingNumber,
+} from "@/lib/validation/payment";
 
 function generateAccountNumber(): string {
   return Math.floor(Math.random() * 1000000000)
@@ -77,12 +83,32 @@ export const accountRouter = router({
     .input(
       z.object({
         accountId: z.number(),
-        amount: z.number().positive(),
-        fundingSource: z.object({
-          type: z.enum(["card", "bank"]),
-          accountNumber: z.string(),
-          routingNumber: z.string().optional(),
-        }),
+        amount: z
+          .number()
+          .superRefine((val, ctx) => {
+            const res = validateAmount(val, 0.01, 10000);
+            if (res !== true) {
+              ctx.addIssue({ code: z.ZodIssueCode.custom, message: typeof res === "string" ? res : "Invalid amount" });
+            }
+          }),
+        fundingSource: z
+          .object({
+            type: z.enum(["card", "bank"]),
+            accountNumber: z.string(),
+            routingNumber: z.string().optional(),
+          })
+          .superRefine((val, ctx) => {
+            if (val.type === "card") {
+              const card = validateCardNumber(val.accountNumber);
+              if (card !== true) ctx.addIssue({ code: z.ZodIssueCode.custom, message: card as string });
+            } else {
+              const acct = validateBankAccountNumber(val.accountNumber);
+              if (acct !== true) ctx.addIssue({ code: z.ZodIssueCode.custom, message: acct as string });
+
+              const routing = val.routingNumber ? validateRoutingNumber(val.routingNumber) : "Routing number is required";
+              if (routing !== true) ctx.addIssue({ code: z.ZodIssueCode.custom, message: routing as string });
+            }
+          }),
       })
     )
     .mutation(async ({ input, ctx }) => {
