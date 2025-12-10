@@ -5,13 +5,24 @@ import { TRPCError } from "@trpc/server";
 import { publicProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { users, sessions } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
+import { validateEmailFormat } from "@/lib/validation/email";
+
+const emailSchema = z.string().superRefine((value, ctx) => {
+  const result = validateEmailFormat(value);
+  if (result !== true) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: typeof result === "string" ? result : "Invalid email address",
+    });
+  }
+});
 
 export const authRouter = router({
   signup: publicProcedure
     .input(
       z.object({
-        email: z.string().email().toLowerCase(),
+        email: emailSchema,
         password: z.string().min(8),
         firstName: z.string().min(1),
         lastName: z.string().min(1),
@@ -25,7 +36,12 @@ export const authRouter = router({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const existingUser = await db.select().from(users).where(eq(users.email, input.email)).get();
+      const normalizedEmail = input.email.toLowerCase();
+      const existingUser = await db
+        .select()
+        .from(users)
+        .where(eq(sql`lower(${users.email})`, normalizedEmail))
+        .get();
 
       if (existingUser) {
         throw new TRPCError({
@@ -42,7 +58,11 @@ export const authRouter = router({
       });
 
       // Fetch the created user
-      const user = await db.select().from(users).where(eq(users.email, input.email)).get();
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(sql`lower(${users.email})`, normalizedEmail))
+        .get();
 
       if (!user) {
         throw new TRPCError({
@@ -78,12 +98,16 @@ export const authRouter = router({
   login: publicProcedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: emailSchema,
         password: z.string(),
       })
     )
     .mutation(async ({ input, ctx }) => {
-      const user = await db.select().from(users).where(eq(users.email, input.email)).get();
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(sql`lower(${users.email})`, input.email.toLowerCase()))
+        .get();
 
       if (!user) {
         throw new TRPCError({
