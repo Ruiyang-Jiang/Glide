@@ -9,6 +9,8 @@ import { eq, sql } from "drizzle-orm";
 import { validateEmailFormat } from "@/lib/validation/email";
 import { validateDateOfBirth, validatePhoneNumber, validateStateCode } from "@/lib/validation/identity";
 import { validatePassword } from "@/lib/validation/password";
+import { encryptSensitive } from "@/lib/security/crypto";
+import { InferSelectModel } from "drizzle-orm";
 
 const emailSchema = z.string().superRefine((value, ctx) => {
   const result = validateEmailFormat(value);
@@ -53,6 +55,11 @@ const stateSchema = z
     }
   });
 
+const sanitizeUser = (user: InferSelectModel<typeof users>) => {
+  const { password, ssn, ...rest } = user;
+  return rest;
+};
+
 export const authRouter = router({
   signup: publicProcedure
     .input(
@@ -91,10 +98,12 @@ export const authRouter = router({
       }
 
       const hashedPassword = await bcrypt.hash(input.password, 10);
+      const encryptedSsn = encryptSensitive(input.ssn);
 
       await db.insert(users).values({
         ...input,
         password: hashedPassword,
+        ssn: encryptedSsn,
       });
 
       // Fetch the created user
@@ -111,7 +120,9 @@ export const authRouter = router({
         });
       }
 
-      // Create session
+      // Create session (invalidate any dangling sessions for the new account)
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
+
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
         expiresIn: "7d",
       });
@@ -132,7 +143,7 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      return { user: sanitizeUser(user), token };
     }),
 
   login: publicProcedure
@@ -165,6 +176,9 @@ export const authRouter = router({
         });
       }
 
+      // Enforce single active session per user
+      await db.delete(sessions).where(eq(sessions.userId, user.id));
+
       const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || "temporary-secret-for-interview", {
         expiresIn: "7d",
       });
@@ -184,7 +198,7 @@ export const authRouter = router({
         (ctx.res as Headers).set("Set-Cookie", `session=${token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=604800`);
       }
 
-      return { user: { ...user, password: undefined }, token };
+      return { user: sanitizeUser(user), token };
     }),
 
   logout: publicProcedure.mutation(async ({ ctx }) => {

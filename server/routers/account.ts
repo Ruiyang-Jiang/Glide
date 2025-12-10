@@ -4,18 +4,14 @@ import { protectedProcedure, router } from "../trpc";
 import { db } from "@/lib/db";
 import { accounts, transactions } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { generateSecureAccountNumber } from "@/lib/security/accountNumber";
 import {
   validateAmount,
   validateBankAccountNumber,
   validateCardNumber,
   validateRoutingNumber,
 } from "@/lib/validation/payment";
-
-function generateAccountNumber(): string {
-  return Math.floor(Math.random() * 1000000000)
-    .toString()
-    .padStart(10, "0");
-}
+import { sanitizeTransactionDescription } from "@/lib/transactions/format";
 
 export const accountRouter = router({
   createAccount: protectedProcedure
@@ -39,32 +35,39 @@ export const accountRouter = router({
         });
       }
 
-      let accountNumber;
+      let accountNumber: string | undefined;
       let isUnique = false;
 
-      // Generate unique account number
-      while (!isUnique) {
-        accountNumber = generateAccountNumber();
+      // Generate unique account number with a capped retry window to prevent infinite loops
+      for (let attempts = 0; attempts < 20 && !isUnique; attempts++) {
+        accountNumber = generateSecureAccountNumber();
         const existing = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber)).get();
         isUnique = !existing;
       }
 
+      if (!isUnique || !accountNumber) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Unable to generate a unique account number",
+        });
+      }
+
       await db.insert(accounts).values({
         userId: ctx.user.id,
-        accountNumber: accountNumber!,
+        accountNumber,
         accountType: input.accountType,
         balance: 0,
         status: "active",
       });
 
       // Fetch the created account
-      const account = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber!)).get();
+      const account = await db.select().from(accounts).where(eq(accounts.accountNumber, accountNumber)).get();
 
       return (
         account || {
           id: 0,
           userId: ctx.user.id,
-          accountNumber: accountNumber!,
+          accountNumber,
           accountType: input.accountType,
           balance: 100,
           status: "pending",
@@ -140,7 +143,7 @@ export const accountRouter = router({
         accountId: input.accountId,
         type: "deposit",
         amount,
-        description: `Funding from ${input.fundingSource.type}`,
+        description: sanitizeTransactionDescription(`Funding from ${input.fundingSource.type}`),
         status: "completed",
         processedAt: new Date().toISOString(),
       });
