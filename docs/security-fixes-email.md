@@ -1,6 +1,3 @@
-To: security-team@example.com
-Subject: Resolution summary for SEC-301, SEC-302, SEC-303, SEC-304
-
 SEC-301 – SSN Storage
 - Cause: SSNs were written to SQLite in plaintext and returned to clients unchanged.
 - Fix: Added AES-256-GCM encryption for SSNs (`encryptSensitive`) before persistence and removed SSN/password from API responses.

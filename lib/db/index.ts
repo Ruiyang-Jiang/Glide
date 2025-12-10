@@ -7,7 +7,7 @@ const dbPath = "bank.db";
 const sqlite = new Database(dbPath);
 export const db = drizzle(sqlite, { schema });
 
-const connections: Database.Database[] = [];
+const connections: Database.Database[] = [sqlite];
 
 export function initDb() {
   const conn = new Database(dbPath);
@@ -61,6 +61,28 @@ export function initDb() {
     );
   `);
 }
+
+export function closeDbConnections() {
+  for (const conn of connections) {
+    if (!conn.open) continue;
+    try {
+      conn.close();
+    } catch (err) {
+      console.warn("Failed to close DB connection", err);
+    }
+  }
+}
+
+// Ensure DB connections are closed on process exit
+process.on("exit", closeDbConnections);
+process.on("SIGINT", () => {
+  closeDbConnections();
+  process.exit(0);
+});
+process.on("SIGTERM", () => {
+  closeDbConnections();
+  process.exit(0);
+});
 
 // Initialize database on import
 initDb();

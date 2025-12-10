@@ -54,15 +54,24 @@ export async function createContext(opts: CreateNextContextOptions | FetchCreate
 
       const session = await db.select().from(sessions).where(eq(sessions.token, token)).get();
 
-      if (session && new Date(session.expiresAt) > new Date()) {
-        user = await db.select().from(users).where(eq(users.id, decoded.userId)).get();
-        const expiresIn = new Date(session.expiresAt).getTime() - new Date().getTime();
-        if (expiresIn < 60000) {
-          console.warn("Session about to expire");
+      if (session) {
+        const expiresAtDate = new Date(session.expiresAt);
+        const expiresInMs = expiresAtDate.getTime() - Date.now();
+
+        // Treat sessions expiring within 2 minutes as expired to reduce near-expiry risk
+        if (expiresInMs > 2 * 60 * 1000) {
+          user = await db.select().from(users).where(eq(users.id, decoded.userId)).get();
+          if (expiresInMs < 5 * 60 * 1000) {
+            console.warn("Session about to expire");
+          }
+        } else {
+          // Session is expired or too close to expiry; remove it
+          await db.delete(sessions).where(eq(sessions.token, token)).run();
         }
       }
     } catch (error) {
-      // Invalid token
+      // Invalid token or decode failure; clear any stored session for this token
+      await db.delete(sessions).where(eq(sessions.token, token)).run();
     }
   }
 
