@@ -43,6 +43,16 @@
 - Fix: `validatePassword` requires ≥12 chars with upper/lower/number/symbol; applied on client and server.
 - Prevention: Keep password rules centralized; test multiple failure modes (length, character classes).
 
+## VAL-209: Amount Input Issues
+- Cause: Amounts with multiple leading zeros were accepted, creating confusing displays.
+- Fix: `validateAmount` now rejects leading-zero formats and enforces $0.01–$10,000 on client/server.
+- Prevention: Validate numeric strings against normalized formats in addition to numeric ranges; add boundary/format tests.
+
+## VAL-210: Card Type Detection
+- Cause: Only basic prefix checks; many valid card ranges were rejected.
+- Fix: Card validation now detects major brands (Visa/MC/Amex/Discover/JCB/Diners) with length/prefix rules plus Luhn.
+- Prevention: Maintain a shared card-brand detector with checksum validation; keep regression tests for representative BINs.
+
 ## How to Test
 - Automated: `npm run test:validators` (email + identity + payment validators) or `npm run test:email` for email-only.
 - Manual UI sanity: toggle light/dark; try invalid inputs like `person@example.con`, DOB `2025-01-01`, state `XX`, phone `12345`—all should be rejected.

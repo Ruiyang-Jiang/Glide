@@ -8,12 +8,16 @@ const cases: Case[] = [
   { email: "user@example.com", expectValid: true },
   { email: "USER@Example.com", expectValid: true },
   { email: "first.last+tag@sub.domain.com", expectValid: true },
+  { email: "user_name-123@domain.co", expectValid: true },
 
   // Obvious invalid formats
   { email: "plainaddress", expectValid: false, message: "invalid email" },
   { email: "missingatsign.com", expectValid: false, message: "invalid email" },
   { email: "user@domain", expectValid: false, message: "invalid email" },
   { email: "user@domain..com", expectValid: false, message: "invalid email" },
+  { email: "user..name@example.com", expectValid: false, message: "invalid email" },
+  { email: "user@.example.com", expectValid: false, message: "invalid email" },
+  { email: "user name@example.com", expectValid: false, message: "invalid email" },
 
   // Common typo: .con instead of .com
   { email: "person@example.con", expectValid: false, message: ".con" },

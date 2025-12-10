@@ -13,12 +13,14 @@ const dobCases: Case<string>[] = [
   { value: futureDate, expectValid: false, message: "future" },
   { value: `${today.getFullYear() - 10}-12-31`, expectValid: false, message: "18" },
   { value: "1890-01-01", expectValid: false, message: "old" },
+  { value: `${today.getFullYear() - 18}-02-29`, expectValid: false, message: "Invalid date" },
   { value: "1990/01/01", expectValid: false, message: "format" },
 ];
 
 const stateCases: Case<string>[] = [
   { value: "CA", expectValid: true },
   { value: "ny", expectValid: true },
+  { value: " ca ", expectValid: true },
   { value: "XX", expectValid: false, message: "state" },
   { value: "C", expectValid: false, message: "state" },
 ];
@@ -27,6 +29,7 @@ const phoneCases: Case<string>[] = [
   { value: "+15551234567", expectValid: true },
   { value: "15551234567", expectValid: true },
   { value: "+441234567890", expectValid: true },
+  { value: "+1 555-123-4567", expectValid: true },
   { value: "12345", expectValid: false, message: "phone" },
   { value: "abc1234567", expectValid: false, message: "phone" },
   { value: "+0012345678", expectValid: false, message: "phone" },
@@ -34,11 +37,13 @@ const phoneCases: Case<string>[] = [
 
 const passwordCases: Case<string>[] = [
   { value: "Str0ng!Password", expectValid: true },
+  { value: "   Str0ng!Password   ", expectValid: true },
   { value: "short1!", expectValid: false, message: "12" },
   { value: "alllowercase123!", expectValid: false, message: "uppercase" },
   { value: "ALLUPPER123!", expectValid: false, message: "lowercase" },
   { value: "NoNumber!!!!", expectValid: false, message: "number" },
   { value: "NoSymbol1234", expectValid: false, message: "symbol" },
+  { value: "NoDigits!!!!!", expectValid: false, message: "number" },
 ];
 
 const runCases = (label: string, cases: Case<string>[], validator: (v: string) => true | string) => {
