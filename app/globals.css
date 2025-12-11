@@ -13,10 +13,11 @@
 [data-theme="dark"] {
   --page-bg: #0a0a0a;
   --page-text: #e5e7eb;
-  --control-bg: #0f172a;
-  --control-text: #f3f4f6;
-  --control-border: #374151;
-  --placeholder: #9ca3af;
+  /* Keep form controls white for contrast against dark page background */
+  --control-bg: #ffffff;
+  --control-text: #111827;
+  --control-border: #d1d5db;
+  --placeholder: #6b7280;
 }
 
 @theme inline {
@@ -50,4 +51,13 @@ option {
 input::placeholder,
 textarea::placeholder {
   color: var(--placeholder) !important;
+}
+
+/* Keep autofilled fields white instead of browser-injected gray */
+input:-webkit-autofill,
+textarea:-webkit-autofill,
+select:-webkit-autofill {
+  -webkit-text-fill-color: var(--control-text) !important;
+  box-shadow: 0 0 0px 1000px var(--control-bg) inset;
+  transition: background-color 9999s ease-in-out 0s;
 }
