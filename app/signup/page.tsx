@@ -28,6 +28,8 @@ export default function SignupPage() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
+  const inputClass =
+    "mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400";
 
   const {
     register,
@@ -88,7 +90,7 @@ export default function SignupPage() {
                     validate: validateEmailFormat,
                   })}
                   type="email"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                  className={inputClass}
                 />
                 {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
               </div>
@@ -103,7 +105,7 @@ export default function SignupPage() {
                     validate: validatePassword,
                   })}
                   type="password"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                  className={inputClass}
                 />
                 {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
               </div>
@@ -118,7 +120,7 @@ export default function SignupPage() {
                     validate: (value) => value === password || "Passwords do not match",
                   })}
                   type="password"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                  className={inputClass}
                 />
                 {errors.confirmPassword && (
                   <p className="mt-1 text-sm text-red-600">{errors.confirmPassword.message}</p>
@@ -137,7 +139,7 @@ export default function SignupPage() {
                   <input
                     {...register("firstName", { required: "First name is required" })}
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className={inputClass}
                   />
                   {errors.firstName && <p className="mt-1 text-sm text-red-600">{errors.firstName.message}</p>}
                 </div>
@@ -149,7 +151,7 @@ export default function SignupPage() {
                   <input
                     {...register("lastName", { required: "Last name is required" })}
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className={inputClass}
                   />
                   {errors.lastName && <p className="mt-1 text-sm text-red-600">{errors.lastName.message}</p>}
                 </div>
@@ -160,33 +162,33 @@ export default function SignupPage() {
                   Phone Number
                 </label>
                 <input
-                  {...register("phoneNumber", {
-                    required: "Phone number is required",
-                    validate: validatePhoneNumber,
-                  })}
-                  type="tel"
-                  placeholder="1234567890"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                />
-                {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>}
-              </div>
+                    {...register("phoneNumber", {
+                      required: "Phone number is required",
+                      validate: validatePhoneNumber,
+                    })}
+                    type="tel"
+                    placeholder="1234567890"
+                    className={inputClass}
+                  />
+                  {errors.phoneNumber && <p className="mt-1 text-sm text-red-600">{errors.phoneNumber.message}</p>}
+                </div>
 
-              <div>
+                <div>
                 <label htmlFor="dateOfBirth" className="block text-sm font-medium text-gray-700">
                   Date of Birth
                 </label>
                 <input
-                  {...register("dateOfBirth", {
-                    required: "Date of birth is required",
-                    validate: validateDateOfBirth,
-                  })}
-                  type="date"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                />
-                {errors.dateOfBirth && <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth.message}</p>}
+                    {...register("dateOfBirth", {
+                      required: "Date of birth is required",
+                      validate: validateDateOfBirth,
+                    })}
+                    type="date"
+                    className={inputClass}
+                  />
+                  {errors.dateOfBirth && <p className="mt-1 text-sm text-red-600">{errors.dateOfBirth.message}</p>}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {step === 3 && (
             <div className="space-y-4">
@@ -204,7 +206,7 @@ export default function SignupPage() {
                   })}
                   type="text"
                   placeholder="123456789"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                  className={inputClass}
                 />
                 {errors.ssn && <p className="mt-1 text-sm text-red-600">{errors.ssn.message}</p>}
               </div>
@@ -213,15 +215,15 @@ export default function SignupPage() {
                 <label htmlFor="address" className="block text-sm font-medium text-gray-700">
                   Street Address
                 </label>
-                <input
-                  {...register("address", { required: "Address is required" })}
-                  type="text"
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
-                />
-                {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>}
-              </div>
+                  <input
+                    {...register("address", { required: "Address is required" })}
+                    type="text"
+                    className={inputClass}
+                  />
+                  {errors.address && <p className="mt-1 text-sm text-red-600">{errors.address.message}</p>}
+                </div>
 
-              <div className="grid grid-cols-6 gap-4">
+                <div className="grid grid-cols-6 gap-4">
                 <div className="col-span-3">
                   <label htmlFor="city" className="block text-sm font-medium text-gray-700">
                     City
@@ -229,7 +231,7 @@ export default function SignupPage() {
                   <input
                     {...register("city", { required: "City is required" })}
                     type="text"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className={inputClass}
                   />
                   {errors.city && <p className="mt-1 text-sm text-red-600">{errors.city.message}</p>}
                 </div>
@@ -245,7 +247,7 @@ export default function SignupPage() {
                     })}
                     type="text"
                     placeholder="CA"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className={inputClass}
                   />
                   {errors.state && <p className="mt-1 text-sm text-red-600">{errors.state.message}</p>}
                 </div>
@@ -264,7 +266,7 @@ export default function SignupPage() {
                     })}
                     type="text"
                     placeholder="12345"
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                    className={inputClass}
                   />
                   {errors.zipCode && <p className="mt-1 text-sm text-red-600">{errors.zipCode.message}</p>}
                 </div>

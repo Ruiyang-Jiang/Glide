@@ -15,6 +15,8 @@ type LoginFormData = {
 export default function LoginPage() {
   const router = useRouter();
   const [error, setError] = useState("");
+  const inputClass =
+    "mt-1 block w-full rounded-md border border-gray-300 bg-white text-gray-900 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-100 dark:placeholder-gray-400";
 
   const {
     register,
@@ -52,7 +54,7 @@ export default function LoginPage() {
                   validate: validateEmailFormat,
                 })}
                 type="email"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                className={inputClass}
               />
               {errors.email && <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>}
             </div>
@@ -64,7 +66,7 @@ export default function LoginPage() {
               <input
                 {...register("password", { required: "Password is required" })}
                 type="password"
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border"
+                className={inputClass}
               />
               {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
             </div>
